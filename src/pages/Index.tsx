@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
 
 type ViewType = 'home' | 'chats' | 'groups' | 'channels' | 'friends';
 
@@ -40,9 +41,18 @@ const mockMessages: Message[] = [
 ];
 
 export default function Index() {
+  const { user, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [selectedChat, setSelectedChat] = useState<string | null>('1');
   const [messageInput, setMessageInput] = useState('');
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+    }
+  };
 
   const getStatusColor = (status: User['status']) => {
     switch (status) {
@@ -139,16 +149,20 @@ export default function Index() {
       <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-gradient-to-br from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))]">
-              YU
-            </AvatarFallback>
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt={user.displayName || 'User'} className="w-full h-full object-cover" />
+            ) : (
+              <AvatarFallback className="bg-gradient-to-br from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))]">
+                {user?.displayName?.substring(0, 2).toUpperCase() || 'YU'}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold">Юрий Космонавт</p>
+            <p className="text-sm font-semibold truncate">{user?.displayName || 'Геймер'}</p>
             <p className="text-xs text-[hsl(var(--neon-purple))]">🎮 Valorant</p>
           </div>
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <Icon name="Settings" size={18} />
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={handleSignOut} title="Выйти">
+            <Icon name="LogOut" size={18} />
           </Button>
         </div>
       </div>
